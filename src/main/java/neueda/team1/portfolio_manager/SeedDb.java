@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,39 +38,69 @@ public class SeedDb {
     public void initDb() {
         this.initPortfolio();
         this.initSecurities();
+        this.initPortfolioNames();
+    }
+
+    private void initPortfolioNames() {
+        for (Portfolio portfolio :
+                portfolioRepository.findAll()) {
+            Optional<Security> security = securityRepository.findById(portfolio.getSymbol());
+            if (security.isPresent()) {
+                portfolio.setName(security.get().getName());
+                portfolio.setPurchasePrice(security.get().getHistoryList().get(0).getLow());
+                portfolio.setShares(100);
+                portfolioRepository.save(portfolio);
+            }
+        }
     }
 
     private void initPortfolio() {
-        LOGGER.info("Adding 10 initial portfolio documents");
+        LOGGER.info("Adding 20 initial portfolio documents");
         portfolioRepository.deleteAll();
-        portfolioRepository.save(new Portfolio("Apple Inc.", "AAPL", 112, 100));
-        portfolioRepository.save(new Portfolio("Nikola Corporation", "NKLA", 32.13, 100));
-        portfolioRepository.save(new Portfolio("Peloton Interactive", "PTON", 84.04, 100));
-        portfolioRepository.save(new Portfolio("General Electric Company", "GE", 5.95, 100));
-        portfolioRepository.save(new Portfolio("Tesla, Inc.", "TSLA", 372.72, 100));
-        portfolioRepository.save(new Portfolio("Ford Motor Company", "F", 7, 100));
-        portfolioRepository.save(new Portfolio("Advanced Micro Devices, Inc.", "AMD", 76.34, 100));
-        portfolioRepository.save(new Portfolio("NIO Limited", "NIO", 17.97, 100));
-        portfolioRepository.save(new Portfolio("Bank of America", "BAC", 25.5, 100));
-        portfolioRepository.save(new Portfolio("Vale S.A.", "VALE", 11.67, 100));
+        portfolioRepository.save(new Portfolio("", "EBAY", 0, 0));
+        portfolioRepository.save(new Portfolio("", "ZNGA", 0, 0));
+        portfolioRepository.save(new Portfolio("", "YELP", 0, 0));
+        portfolioRepository.save(new Portfolio("", "YNDX", 0, 0));
+        portfolioRepository.save(new Portfolio("", "SPWR", 0, 0));
+        portfolioRepository.save(new Portfolio("", "SSYS", 0, 0));
+        portfolioRepository.save(new Portfolio("", "SPLK", 0, 0));
+        portfolioRepository.save(new Portfolio("", "SAP", 0, 0));
+        portfolioRepository.save(new Portfolio("", "RP", 0, 0));
+        portfolioRepository.save(new Portfolio("", "PANW", 0, 0));
+        portfolioRepository.save(new Portfolio("", "LN", 0, 0));
+        portfolioRepository.save(new Portfolio("", "IRBT", 0, 0));
+        portfolioRepository.save(new Portfolio("", "ILMN", 0, 0));
+        portfolioRepository.save(new Portfolio("", "IBM", 0, 0));
+        portfolioRepository.save(new Portfolio("", "GRPN", 0, 0));
+        portfolioRepository.save(new Portfolio("", "GDOT", 0, 0));
+        portfolioRepository.save(new Portfolio("", "GOGO", 0, 0));
+        portfolioRepository.save(new Portfolio("", "FEYE", 0, 0));
+        portfolioRepository.save(new Portfolio("", "FB", 0, 0));
+        portfolioRepository.save(new Portfolio("", "FEYE", 0, 0));
+        portfolioRepository.save(new Portfolio("", "ENV", 0, 0));
+        portfolioRepository.save(new Portfolio("", "BYND", 0, 0));
+        portfolioRepository.save(new Portfolio("", "Y", 0, 0));
+        portfolioRepository.save(new Portfolio("", "ADBE", 0, 0));
+        portfolioRepository.save(new Portfolio("", "T", 0, 0));
+        portfolioRepository.save(new Portfolio("", "MMM", 0, 0));
     }
 
     private void initSecurities() {
         LOGGER.info("Initializing stock documents:");
         RestTemplate restTemplate = new RestTemplate();
-        LOGGER.info("\tGetting security results");
+        LOGGER.info("--Getting security results");
         SecurityResult securityResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/markets?apikey={API_KEY}", SecurityResult.class, API_KEY);
         assert securityResult != null;
         List<Security> securityList = securityResult.getData();
         securityRepository.saveAll(securityList);
 
-        LOGGER.info("\tGetting security history results for securities in portfolio");
+        LOGGER.info("--Getting security history results for securities in portfolio");
         List<Portfolio> portfolioList = portfolioRepository.findAll();
         Set<String> portfolioSymbols = portfolioList.stream().map(portfolio -> portfolio.getSymbol()).collect(Collectors.toSet());
         Iterable<Security> portFolioSecurities = securityRepository.findAllById(portfolioSymbols);
         for (Security security :
                 portFolioSecurities) {
-            LOGGER.info("\t\tGetting security history results of {}", security.getSymbol());
+            LOGGER.info("----Getting security history results of {}", security.getSymbol());
             String symbol = security.getSymbol();
             String startDate = "2016-01-01";
             SecurityHistoryResult securityHistoryResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/history?apikey={API_KEY}&symbol={symbol}&start_date={startDate}", SecurityHistoryResult.class, API_KEY, symbol, startDate);
