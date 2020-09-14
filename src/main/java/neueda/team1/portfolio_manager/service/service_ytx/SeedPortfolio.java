@@ -17,7 +17,7 @@ public class SeedPortfolio {
     @Autowired
     PortfolioRepository repository;
 
-    @PostConstruct
+  //  @PostConstruct
     public void init(){
 
         repository.save(new Portfolio("Apple Inc.", "AAPL", 112,  100));

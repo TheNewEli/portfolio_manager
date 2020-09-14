@@ -43,12 +43,16 @@ public class TrochilHttpManage {
 
         JsonElement jsonElement = JsonParser.parseString(apiResult);
         JsonObject jsonObject = jsonElement.getAsJsonObject();
+
+        if(jsonObject.get("data") == null){
+            System.out.println(symbol+" can't be requested");
+            return null;
+        }
         JsonElement jsonDataElement = jsonObject.get("data");
         JsonObject jsonData = jsonDataElement.getAsJsonObject();
         JsonElement jsonResultElement = jsonData.get(symbol);
         JsonObject jsonResult = jsonResultElement.getAsJsonObject();
         SupplementFromDB(jsonResult,symbol);
-
         return  jsonResult.toString();
     }
 

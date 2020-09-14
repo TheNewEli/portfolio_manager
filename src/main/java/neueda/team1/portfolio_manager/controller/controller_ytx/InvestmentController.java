@@ -45,6 +45,7 @@ public class InvestmentController {
         JsonArray jsonResultArray = new JsonArray();
         for(Portfolio portfolio:portfolios){
             String investment = trochilHttpManage.getInvestmentBySymbol(portfolio.getSymbol());
+            if(investment == null){continue;}
             JsonElement jsonElement = JsonParser.parseString(investment);
             jsonResultArray.add(jsonElement);
         }
