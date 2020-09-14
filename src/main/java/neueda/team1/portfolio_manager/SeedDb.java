@@ -2,6 +2,7 @@ package neueda.team1.portfolio_manager;
 
 import neueda.team1.portfolio_manager.entity.*;
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
+import neueda.team1.portfolio_manager.repository.BankAccountRepository;
 import neueda.team1.portfolio_manager.repository.SecurityRepository;
 import neueda.team1.portfolio_manager.repository.UserRepository;
 import neueda.team1.portfolio_manager.repository.repository_ytx.PortfolioRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,19 +29,31 @@ public class SeedDb {
     private final PortfolioRepository portfolioRepository;
     private final SecurityRepository securityRepository;
     private final UserRepository userRepository;
+    private final BankAccountRepository bankAccountRepository;
 
-    public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository, UserRepository userRepository) {
+    public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository,
+                  UserRepository userRepository, BankAccountRepository bankAccountRepository) {
         this.portfolioRepository = portfolioRepository;
         this.securityRepository = securityRepository;
         this.userRepository = userRepository;
+        this.bankAccountRepository = bankAccountRepository;
     }
 
     @PostConstruct
     public void initDb() {
         this.initPortfolio();
-        this.initSecurities();
+        this.initSecurities(); // Comment out this line if your database is already initiated
         this.initPortfolioNames();
         this.initUser();
+        this.initBankAccount();
+    }
+
+    private void initBankAccount() {
+        bankAccountRepository.deleteAll();
+        bankAccountRepository.save(new BankAccount("1", 12007000.0, "Citibank", "1", new Date()));
+        bankAccountRepository.save(new BankAccount("2", 13006000.0, "Wells Fargo", "1", new Date()));
+        bankAccountRepository.save(new BankAccount("3", 14005000.0, "China Bank", "1", new Date()));
+
     }
 
     private void initUser() {
