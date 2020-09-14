@@ -1,11 +1,9 @@
 package neueda.team1.portfolio_manager;
 
-import neueda.team1.portfolio_manager.entity.Security;
-import neueda.team1.portfolio_manager.entity.SecurityHistory;
-import neueda.team1.portfolio_manager.entity.SecurityHistoryResult;
-import neueda.team1.portfolio_manager.entity.SecurityResult;
+import neueda.team1.portfolio_manager.entity.*;
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
 import neueda.team1.portfolio_manager.repository.SecurityRepository;
+import neueda.team1.portfolio_manager.repository.UserRepository;
 import neueda.team1.portfolio_manager.repository.repository_ytx.PortfolioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +26,12 @@ public class SeedDb {
 
     private final PortfolioRepository portfolioRepository;
     private final SecurityRepository securityRepository;
+    private final UserRepository userRepository;
 
-    public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository) {
+    public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository, UserRepository userRepository) {
         this.portfolioRepository = portfolioRepository;
         this.securityRepository = securityRepository;
+        this.userRepository = userRepository;
     }
 
     @PostConstruct
@@ -39,6 +39,15 @@ public class SeedDb {
         this.initPortfolio();
         this.initSecurities();
         this.initPortfolioNames();
+        this.initUser();
+    }
+
+    private void initUser() {
+        userRepository.deleteAll();
+        userRepository.save(new User("1", "caoyu", "pwd", "caoyu@neueda.com"));
+        userRepository.save(new User("2", "yutongxin", "pwd", "yutongxin@neueda.com"));
+        userRepository.save(new User("3", "duwenyuan", "pwd", "duwenyuan@neueda.com"));
+        userRepository.save(new User("4", "hezhi", "pwd", "hezhi@neueda.com"));
     }
 
     private void initPortfolioNames() {
@@ -91,6 +100,7 @@ public class SeedDb {
         LOGGER.info("--Getting security results");
         SecurityResult securityResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/markets?apikey={API_KEY}", SecurityResult.class, API_KEY);
         assert securityResult != null;
+        assert securityResult.getData() != null;
         List<Security> securityList = securityResult.getData();
         securityRepository.saveAll(securityList);
 
@@ -105,6 +115,7 @@ public class SeedDb {
             String startDate = "2016-01-01";
             SecurityHistoryResult securityHistoryResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/history?apikey={API_KEY}&symbol={symbol}&start_date={startDate}", SecurityHistoryResult.class, API_KEY, symbol, startDate);
             assert securityHistoryResult != null;
+            assert securityHistoryResult.getData() != null;
             List<SecurityHistory> allSecurityHistoryList = securityHistoryResult.getData();
             security.setHistoryList(allSecurityHistoryList);
             security.setType(Security.TYPE_STOCK);
