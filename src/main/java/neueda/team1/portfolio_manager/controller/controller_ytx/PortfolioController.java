@@ -5,8 +5,6 @@ import neueda.team1.portfolio_manager.service.service_ytx.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.sound.sampled.Port;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
@@ -19,15 +17,10 @@ import java.util.Optional;
 @CrossOrigin
 @RestController
 @RequestMapping("/investment")
-
 public class PortfolioController {
     @Autowired
     PortfolioService portfolioService;
 
-    @RequestMapping("/hello")
-    public String getResult() {
-        return "hello";
-    }
     // Get all portfolios.
     @GetMapping(value="/portfolios", produces={"application/json"})
     public ResponseEntity<Collection<Portfolio>> getAllPortfolios() {
