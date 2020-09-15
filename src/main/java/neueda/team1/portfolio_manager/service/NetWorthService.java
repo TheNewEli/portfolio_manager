@@ -21,21 +21,21 @@ public class NetWorthService {
     }
 
 
-    public List<Float> getLastWeekNetWorth() {
+    public Map<Date, Float> getLastWeekNetWorth() {
         return this.getLastDaysNetWorth(7);
     }
 
-    public List<Float> getLastMonthNetWorth() {
+    public Map<Date, Float> getLastMonthNetWorth() {
         return this.getLastDaysNetWorth(30);
     }
 
-    public List<Float> getLastQuarterNetWorth() {
+    public Map<Date, Float> getLastQuarterNetWorth() {
         return this.getLastDaysNetWorth(90);
     }
 
 
-    public List<Float> getLastDaysNetWorth(int dayCount) {
-        List<Float> netWorthList = new ArrayList<>();
+    public Map<Date, Float> getLastDaysNetWorth(int dayCount) {
+        Map<Date, Float> netWorthMap = new HashMap<>();
 
         List<Portfolio> portfolioList = portfolioRepository.findAll();
         List<String> portfolioSymbols = portfolioList.stream().map(Portfolio::getSymbol).collect(Collectors.toList());
@@ -47,17 +47,18 @@ public class NetWorthService {
         for (List<SecurityHistory> securityHistoryList :
                 securityHistoryLists) {
             List<SecurityHistory> lastWeekSecurityHistory = securityHistoryList.stream().filter(single -> !single.getDatetime().before(this.getDateBefore(dayCount))).collect(Collectors.toList());
-            List<Float> lastWeekClosePrice = lastWeekSecurityHistory.stream().map(SecurityHistory::getClose).collect(Collectors.toList());
-            for (int i = 0; i < lastWeekClosePrice.size(); i++) {
-                if (netWorthList.size() < i + 1) {
-                    netWorthList.add(lastWeekClosePrice.get(i));
+            for (SecurityHistory securityHistory :
+                    lastWeekSecurityHistory) {
+                Date historyDate = securityHistory.getDatetime();
+                if (null == netWorthMap.get(historyDate)) {
+                    netWorthMap.put(historyDate, securityHistory.getClose());
                 } else {
-                    float current = netWorthList.get(i);
-                    netWorthList.set(i, current + lastWeekClosePrice.get(i));
+                    float current = netWorthMap.get(historyDate);
+                    netWorthMap.put(historyDate, current + securityHistory.getClose());
                 }
             }
         }
-        return netWorthList;
+        return netWorthMap;
     }
 
     private Date getDateBefore(int dayCount) {

@@ -1,6 +1,5 @@
 package neueda.team1.portfolio_manager.controller;
 
-import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
 import neueda.team1.portfolio_manager.service.NetWorthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,9 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("netWorth")
@@ -22,8 +19,8 @@ public class NetWorthController {
     }
 
     @GetMapping(value = "{period}", produces = {"application/json"})
-    public ResponseEntity<Collection<Float>> getAllPortfolios(@PathVariable String period) {
-        List<Float> netWortList = new ArrayList<>();
+    public ResponseEntity<Map<Date, Float>> getAllPortfolios(@PathVariable String period) {
+        Map<Date, Float> netWortList = new HashMap<>();
         switch (period) {
             case "week":
                 netWortList = netWorthService.getLastWeekNetWorth();
@@ -35,8 +32,15 @@ public class NetWorthController {
                 netWortList = netWorthService.getLastQuarterNetWorth();
                 break;
             default:
+                int dayCount = Integer.parseInt(period);
                 break;
         }
+        return ResponseEntity.ok().body(netWortList);
+    }
+
+    @GetMapping(value = "/days/{dayCount}", produces = {"application/json"})
+    public ResponseEntity<Map<Date, Float>> getAllPortfolios(@PathVariable int dayCount) {
+        Map<Date, Float> netWortList = netWorthService.getLastDaysNetWorth(dayCount);
         return ResponseEntity.ok().body(netWortList);
     }
 
