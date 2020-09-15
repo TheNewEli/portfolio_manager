@@ -1,9 +1,12 @@
 package neueda.team1.portfolio_manager.entity;
 
+import org.springframework.data.annotation.Id;
+
 import java.util.Date;
 import java.util.Map;
 
 public class BankAccount {
+    @Id
     private String id;
     private String userId;
     private String bankName;

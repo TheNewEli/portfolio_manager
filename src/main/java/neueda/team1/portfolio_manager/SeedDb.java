@@ -17,12 +17,15 @@ import java.util.stream.Collectors;
 
 @Component
 public class SeedDb {
+    @Value("${initdb}")
+    private boolean initDb;
+
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     public static final List<String> INIT_SYMBOLS = Arrays.asList("EBAY", "ZNGA", "YELP", "YNDX", "SPWR",
             "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO", "FEYE",
             "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
-    //    public static final int INIT_CASH = 100000000;
-    @Value("${hummingbird.apikey.3}")
+    public static final int INIT_BALANCE = 10000000;
+    @Value("${hummingbird.apikey.5}")
     private String API_KEY;
 
     private final PortfolioRepository portfolioRepository;
@@ -48,33 +51,36 @@ public class SeedDb {
 
     @PostConstruct
     public void initDb() {
-        this.initUser();
-        this.initTeamPortfolio();
-//        this.initPortfolio();//deprecated
-        this.initSecurities(); // Comment out this line if your database is already initiated
-//        this.initPortfolioNames();//deprecated
-        this.initDailyPositions();
-        this.initTransaction();
-//        this.initBankAccount();
-
+        LOGGER.warn("Initializing DB");
+        if (initDb) {
+            this.initUser();
+            this.initTeamPortfolio();
+//            this.initPortfolio();//deprecated
+            this.initSecurities(); // Comment out this line if your database is already initiated
+//            this.initPortfolioNames();//deprecated
+            this.initDailyPositions();
+            this.initTransaction();
+            this.initBankAccount();
+        }
     }
 
     private void initUser() {
         LOGGER.info("Adding user documents to user collection...");
         userRepository.deleteAll();
         userRepository.save(new User("user0001", "caoyu", "pwd", "caoyu@neueda.com"));
-        userRepository.save(new User("user0002", "yutongxin", "pwd", "yutongxin@neueda.com"));
-        userRepository.save(new User("user0003", "duwenyuan", "pwd", "duwenyuan@neueda.com"));
-        userRepository.save(new User("user0004", "hezhi", "pwd", "hezhi@neueda.com"));
+//        userRepository.save(new User("user0002", "yutongxin", "pwd", "yutongxin@neueda.com"));
+//        userRepository.save(new User("user0003", "duwenyuan", "pwd", "duwenyuan@neueda.com"));
+//        userRepository.save(new User("user0004", "hezhi", "pwd", "hezhi@neueda.com"));
         LOGGER.info("Adding user documents to user collection: Done");
     }
 
     private void initTeamPortfolio() {
         LOGGER.info("Adding teamPortfolio collection...");
-        teamPortfolioRepository.save(new TeamPortfolio("caoyuPortfolio", null, "user0001"));
-        teamPortfolioRepository.save(new TeamPortfolio("yutongxinPortfolio", null, "user0001"));
-        teamPortfolioRepository.save(new TeamPortfolio("duwenyuanPortfolio", null, "user0001"));
-        teamPortfolioRepository.save(new TeamPortfolio("hezhiPortfolio", null, "user0001"));
+        teamPortfolioRepository.deleteAll();
+        teamPortfolioRepository.save(new TeamPortfolio("portfolio01", "caoyuPortfolio", null, "user0001"));
+//        teamPortfolioRepository.save(new TeamPortfolio("portfolio02", "yutongxinPortfolio", null, "user0002"));
+//        teamPortfolioRepository.save(new TeamPortfolio("portfolio03", "duwenyuanPortfolio", null, "user0003"));
+//        teamPortfolioRepository.save(new TeamPortfolio("portfolio04", "hezhiPortfolio", null, "user0004"));
         LOGGER.info("Adding teamPortfolio collection:Done");
     }
 
@@ -115,6 +121,34 @@ public class SeedDb {
         LOGGER.info("Initializing security documents and security history documents: Done");
     }
 
+    //start daily position
+    private void initDailyPositions() {
+        dailyPositionRepository.deleteAll();
+        for (String portfolioId :
+                teamPortfolioRepository.findAll().stream().map(TeamPortfolio::getId).collect(Collectors.toList())) {
+            this.initDailyPositionsForPortfolio(portfolioId);
+        }
+    }
+
+    private void initDailyPositionsForPortfolio(String portfolioId) {
+        LOGGER.info("Adding daily position documents for portfolio '{}'...", portfolioId);
+        for (String symbol :
+                INIT_SYMBOLS) {
+            List<DailyPosition> dailyPositionList = new ArrayList<>();
+            List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
+            for (SecurityHistory securityHistory :
+                    securityHistoryList) {
+                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(100, 10000)));
+            }
+            dailyPositionRepository.saveAll(dailyPositionList);
+            LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
+        }
+        LOGGER.info("Adding daily position documents for portfolio '{}': Done", portfolioId);
+    }
+    //end daily position
+
+
+    //start transaction
     private void initTransaction() {
         transactionRepository.deleteAll();
         for (String portfolioId :
@@ -125,7 +159,6 @@ public class SeedDb {
 
     private void initTransactionForPortfolio(String portfolioId) {
         LOGGER.info("Adding transaction for portfolio '{}'...", portfolioId);
-        transactionRepository.deleteAll();
         for (String symbol :
                 INIT_SYMBOLS) {
             LOGGER.info("--{}", symbol);
@@ -179,31 +212,51 @@ public class SeedDb {
         transaction.setShares(shareDiff);
         return transaction;
     }
+    //end transaction
 
-    private void initDailyPositions() {
-        dailyPositionRepository.deleteAll();
-        for (String portfolioId :
-                teamPortfolioRepository.findAll().stream().map(TeamPortfolio::getId).collect(Collectors.toList())) {
-            this.initDailyPositionsForPortfolio(portfolioId);
-        }
-    }
 
-    private void initDailyPositionsForPortfolio(String portfolioId) {
-        LOGGER.info("Adding daily position documents for portfolio '{}'...", portfolioId);
-        for (String symbol :
-                INIT_SYMBOLS) {
-            List<DailyPosition> dailyPositionList = new ArrayList<>();
-            List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
-            for (SecurityHistory securityHistory :
-                    securityHistoryList) {
-                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(1000, 2000)));
+    private void initBankAccount() {
+        //        2016-01-04T00:00:00.000Z
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        for (TeamPortfolio portfolio :
+                teamPortfolioRepository.findAll()) {
+
+            startCalendar.set(2016, Calendar.JANUARY, 1, 0, 0, 0);
+            startCalendar.set(Calendar.MILLISECOND, 0);
+
+            LOGGER.info("setting bankAccount for portfolio '{}'", portfolio.getId());
+            Map<Date, Float> historyBalance = new HashMap<>();
+            Date today = new Date();
+            Calendar calendar = startCalendar;
+
+            float tempBalance = INIT_BALANCE;
+            historyBalance.put(calendar.getTime(), tempBalance);
+            while (calendar.getTime().before(today)) {
+                calendar.add(Calendar.DATE, 1);
+                List<Transaction> transactionsOfTheDay = transactionRepository.findTransactionForBankAccountHistoryBalance(portfolio.getId(), calendar.getTime());
+                if (transactionsOfTheDay.size() > 0) {
+                    for (Transaction transaction :
+                            transactionsOfTheDay) {
+                        tempBalance = tempBalance + transaction.getPrice() * (-transaction.getShares());
+                    }
+                    LOGGER.info("--balance on {}: {}", calendar.getTime(), tempBalance);
+                    historyBalance.put(calendar.getTime(), tempBalance);
+                }
             }
-            dailyPositionRepository.saveAll(dailyPositionList);
-            LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
-        }
-        LOGGER.info("Adding daily position documents for portfolio '{}': Done", portfolioId);
-    }
 
+            BankAccount bankAccount = new BankAccount();
+            bankAccount.setBalance(tempBalance);
+            bankAccount.setBankName("CitiBank");
+            bankAccount.setUserId(portfolio.getUserId());
+            bankAccount.setHistoryBalance(historyBalance);
+
+            portfolio.setBankAccount(bankAccount);
+            teamPortfolioRepository.save(portfolio);
+        }
+
+    }
 
     @Deprecated
     private void initPortfolioNames() {

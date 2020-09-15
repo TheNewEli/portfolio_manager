@@ -18,7 +18,8 @@ public class TeamPortfolio {
     public TeamPortfolio() {
     }
 
-    public TeamPortfolio(String name, BankAccount bankAccount, String userId) {
+    public TeamPortfolio(String id, String name, BankAccount bankAccount, String userId) {
+        this.id = id;
         this.name = name;
         this.bankAccount = bankAccount;
         this.userId = userId;
