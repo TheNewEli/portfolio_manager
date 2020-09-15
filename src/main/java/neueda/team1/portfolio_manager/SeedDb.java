@@ -20,6 +20,7 @@ public class SeedDb {
     public static final List<String> INIT_SYMBOLS = Arrays.asList("EBAY", "ZNGA", "YELP", "YNDX", "SPWR",
             "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO", "FEYE",
             "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
+    public static final int INIT_CASH = 100000000;
     @Value("${hummingbird.apikey.3}")
     private String API_KEY;
 
@@ -29,15 +30,17 @@ public class SeedDb {
     private final UserRepository userRepository;
     private final BankAccountRepository bankAccountRepository;
     private final DailyPositionRepository dailyPositionRepository;
+    private final TransactionRepository transactionRepository;
 
     public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository,
-                  SecurityHistoryRepository securityHistoryRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, DailyPositionRepository dailyPositionRepository) {
+                  SecurityHistoryRepository securityHistoryRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, DailyPositionRepository dailyPositionRepository, TransactionRepository transactionRepository) {
         this.portfolioRepository = portfolioRepository;
         this.securityRepository = securityRepository;
         this.securityHistoryRepository = securityHistoryRepository;
         this.userRepository = userRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.dailyPositionRepository = dailyPositionRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     @PostConstruct
@@ -48,31 +51,104 @@ public class SeedDb {
         this.initSecurities(); // Comment out this line if your database is already initiated
         this.initPortfolioNames();//deprecated
         this.initDailyPositions();
+        this.initTransaction();
+    }
+
+    private void initTransaction() {
+        transactionRepository.deleteAll();
+        List<String> portfolioIdList = Arrays.asList("CY123456");
+        for (String portfolioId :
+                portfolioIdList) {
+            this.initTransactionForPortfolio(portfolioId);
+        }
+    }
+
+    private void initTransactionForPortfolio(String portfolioId) {
+        LOGGER.info("Adding transaction for portfolio '{}'", portfolioId);
+        transactionRepository.deleteAll();
+        for (String symbol :
+                INIT_SYMBOLS) {
+            List<DailyPosition> dailyPositionList = dailyPositionRepository.findAllBySymbolInPortfolio(portfolioId, symbol);
+            dailyPositionList.sort(new Comparator<DailyPosition>() {
+                @Override
+                public int compare(DailyPosition o1, DailyPosition o2) {
+                    long difference = o1.getDate().getTime() - o2.getDate().getTime();
+                    if (difference > 0) {
+                        return 1;
+                    } else if (difference < 0) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            });
+
+            for (int i = 0; i < dailyPositionList.size(); i++) {
+                DailyPosition dailyPosition = dailyPositionList.get(i);
+                this.culculateTransaction();
+                Transaction transaction = new Transaction();
+                transaction.setDate(dailyPosition.getDate());
+                transaction.setSymbol(dailyPosition.getSecurityHistory().getSymbol());
+                if (i == 0) {
+                    transaction.setType(Transaction.TYPE_BUY);
+                    transaction.setPrice(dailyPosition.getSecurityHistory().getOpen());
+                    transaction.setShares(dailyPosition.getShares());
+                } else {
+                    DailyPosition previousPosition = dailyPositionList.get(i - 1);
+                    transaction = this.calculateTransaction(dailyPosition, previousPosition);
+                }
+
+                if (null != transaction) {
+                    transactionRepository.save(transaction);
+                }
+            }
+        }
+    }
+
+    private Transaction calculateTransaction(DailyPosition dailyPosition, DailyPosition previousPosition) {
+        Transaction transaction = new Transaction();
+        transaction.setDate(dailyPosition.getDate());
+        transaction.setSymbol(dailyPosition.getSecurityHistory().getSymbol());
+        int shareDiff = dailyPosition.getShares() - previousPosition.getShares();
+        if (shareDiff > 0) {
+            transaction.setType(Transaction.TYPE_BUY);
+            transaction.setPrice(dailyPosition.getSecurityHistory().getOpen());
+        } else if (shareDiff < 0) {
+            transaction.setType(Transaction.TYPE_SELL);
+            transaction.setPrice(previousPosition.getSecurityHistory().getClose());
+        } else {
+            return null;
+        }
+        transaction.setShares(shareDiff);
+        return transaction;
+    }
+
+    private void culculateTransaction() {
     }
 
     private void initDailyPositions() {
         dailyPositionRepository.deleteAll();
         List<String> portfolioIdList = Arrays.asList("CY123456");
-        for (String id :
+        for (String portfolioId :
                 portfolioIdList) {
-            this.initDailyPositionsForPortfolio(id);
+            this.initDailyPositionsForPortfolio(portfolioId);
         }
     }
 
     private void initDailyPositionsForPortfolio(String portfolioId) {
-        LOGGER.info("Adding daily position documents for portfolio '{portfolioId}'...", portfolioId);
+        LOGGER.info("Adding daily position documents for portfolio '{}'...", portfolioId);
         for (String symbol :
                 INIT_SYMBOLS) {
             List<DailyPosition> dailyPositionList = new ArrayList<>();
             List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
             for (SecurityHistory securityHistory :
                     securityHistoryList) {
-                dailyPositionList.add(new DailyPosition(portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(1000)));
+                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(1000, 2000)));
             }
             dailyPositionRepository.saveAll(dailyPositionList);
             LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
         }
-        LOGGER.info("Adding daily position documents for portfolio '{portfolioId}': Done", portfolioId);
+        LOGGER.info("Adding daily position documents for portfolio '{}': Done", portfolioId);
     }
 
     private void initBankAccount() {
@@ -122,6 +198,8 @@ public class SeedDb {
 
     private void initSecurities() {
         LOGGER.info("Initializing security documents and security history documents:...");
+        securityRepository.deleteAll();
+        securityHistoryRepository.deleteAll();
         RestTemplate restTemplate = new RestTemplate();
         LOGGER.info("--Getting security results");
         SecurityResult securityResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/markets?apikey={API_KEY}", SecurityResult.class, API_KEY);

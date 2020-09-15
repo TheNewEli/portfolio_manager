@@ -9,8 +9,8 @@ public class NumUtil {
         return num + random.intValue();
     }
 
-    public static int randomInt(int range) {
-        Double result = Math.random() * range;
+    public static int randomInt(int low, int high) {
+        Double result = low + Math.random() * (high - low);
         return result.intValue();
     }
 }

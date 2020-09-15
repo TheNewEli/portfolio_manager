@@ -1,17 +1,23 @@
 package neueda.team1.portfolio_manager.entity;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 
 @Document("daily_position")
 public class DailyPosition {
+    @Id
+    private String id;
     private String portfolio_id;
     private Date date;
+    @Field("security_history")
     private SecurityHistory securityHistory;
     private int shares;
 
-    public DailyPosition(String portfolio_id, Date date, SecurityHistory securityHistory, int shares) {
+    public DailyPosition(String id, String portfolio_id, Date date, SecurityHistory securityHistory, int shares) {
+        this.id = id;
         this.portfolio_id = portfolio_id;
         this.date = date;
         this.securityHistory = securityHistory;
@@ -51,5 +57,13 @@ public class DailyPosition {
 
     public void setShares(int shares) {
         this.shares = shares;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
