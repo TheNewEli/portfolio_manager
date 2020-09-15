@@ -56,7 +56,7 @@ public class SeedDb {
             this.initUser();
             this.initTeamPortfolio();
 //            this.initPortfolio();//deprecated
-            this.initSecurities(); // Comment out this line if your database is already initiated
+//            this.initSecurities(); // Comment out this line if your database is already initiated
 //            this.initPortfolioNames();//deprecated
             this.initDailyPositions();
             this.initTransaction();
