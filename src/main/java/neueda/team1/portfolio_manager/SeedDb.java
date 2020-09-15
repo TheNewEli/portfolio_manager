@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class SeedDb {
@@ -20,7 +21,7 @@ public class SeedDb {
     public static final List<String> INIT_SYMBOLS = Arrays.asList("EBAY", "ZNGA", "YELP", "YNDX", "SPWR",
             "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO", "FEYE",
             "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
-    public static final int INIT_CASH = 100000000;
+    //    public static final int INIT_CASH = 100000000;
     @Value("${hummingbird.apikey.3}")
     private String API_KEY;
 
@@ -28,172 +29,53 @@ public class SeedDb {
     private final SecurityRepository securityRepository;
     private final SecurityHistoryRepository securityHistoryRepository;
     private final UserRepository userRepository;
-    private final BankAccountRepository bankAccountRepository;
     private final DailyPositionRepository dailyPositionRepository;
     private final TransactionRepository transactionRepository;
+    private final TeamPortfolioRepository teamPortfolioRepository;
 
     public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository,
-                  SecurityHistoryRepository securityHistoryRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, DailyPositionRepository dailyPositionRepository, TransactionRepository transactionRepository) {
+                  SecurityHistoryRepository securityHistoryRepository, UserRepository userRepository,
+                  DailyPositionRepository dailyPositionRepository, TransactionRepository transactionRepository,
+                  TeamPortfolioRepository teamPortfolioRepository) {
         this.portfolioRepository = portfolioRepository;
         this.securityRepository = securityRepository;
         this.securityHistoryRepository = securityHistoryRepository;
         this.userRepository = userRepository;
-        this.bankAccountRepository = bankAccountRepository;
         this.dailyPositionRepository = dailyPositionRepository;
         this.transactionRepository = transactionRepository;
+        this.teamPortfolioRepository = teamPortfolioRepository;
     }
 
     @PostConstruct
     public void initDb() {
         this.initUser();
-        this.initBankAccount();
-        this.initPortfolio();//deprecated
+        this.initTeamPortfolio();
+//        this.initPortfolio();//deprecated
         this.initSecurities(); // Comment out this line if your database is already initiated
-        this.initPortfolioNames();//deprecated
+//        this.initPortfolioNames();//deprecated
         this.initDailyPositions();
         this.initTransaction();
-    }
-
-    private void initTransaction() {
-        transactionRepository.deleteAll();
-        List<String> portfolioIdList = Arrays.asList("CY123456");
-        for (String portfolioId :
-                portfolioIdList) {
-            this.initTransactionForPortfolio(portfolioId);
-        }
-    }
-
-    private void initTransactionForPortfolio(String portfolioId) {
-        LOGGER.info("Adding transaction for portfolio '{}'", portfolioId);
-        transactionRepository.deleteAll();
-        for (String symbol :
-                INIT_SYMBOLS) {
-            List<DailyPosition> dailyPositionList = dailyPositionRepository.findAllBySymbolInPortfolio(portfolioId, symbol);
-            dailyPositionList.sort(new Comparator<DailyPosition>() {
-                @Override
-                public int compare(DailyPosition o1, DailyPosition o2) {
-                    long difference = o1.getDate().getTime() - o2.getDate().getTime();
-                    if (difference > 0) {
-                        return 1;
-                    } else if (difference < 0) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            });
-
-            for (int i = 0; i < dailyPositionList.size(); i++) {
-                DailyPosition dailyPosition = dailyPositionList.get(i);
-                this.culculateTransaction();
-                Transaction transaction = new Transaction();
-                transaction.setDate(dailyPosition.getDate());
-                transaction.setSymbol(dailyPosition.getSecurityHistory().getSymbol());
-                if (i == 0) {
-                    transaction.setType(Transaction.TYPE_BUY);
-                    transaction.setPrice(dailyPosition.getSecurityHistory().getOpen());
-                    transaction.setShares(dailyPosition.getShares());
-                } else {
-                    DailyPosition previousPosition = dailyPositionList.get(i - 1);
-                    transaction = this.calculateTransaction(dailyPosition, previousPosition);
-                }
-
-                if (null != transaction) {
-                    transactionRepository.save(transaction);
-                }
-            }
-        }
-    }
-
-    private Transaction calculateTransaction(DailyPosition dailyPosition, DailyPosition previousPosition) {
-        Transaction transaction = new Transaction();
-        transaction.setDate(dailyPosition.getDate());
-        transaction.setSymbol(dailyPosition.getSecurityHistory().getSymbol());
-        int shareDiff = dailyPosition.getShares() - previousPosition.getShares();
-        if (shareDiff > 0) {
-            transaction.setType(Transaction.TYPE_BUY);
-            transaction.setPrice(dailyPosition.getSecurityHistory().getOpen());
-        } else if (shareDiff < 0) {
-            transaction.setType(Transaction.TYPE_SELL);
-            transaction.setPrice(previousPosition.getSecurityHistory().getClose());
-        } else {
-            return null;
-        }
-        transaction.setShares(shareDiff);
-        return transaction;
-    }
-
-    private void culculateTransaction() {
-    }
-
-    private void initDailyPositions() {
-        dailyPositionRepository.deleteAll();
-        List<String> portfolioIdList = Arrays.asList("CY123456");
-        for (String portfolioId :
-                portfolioIdList) {
-            this.initDailyPositionsForPortfolio(portfolioId);
-        }
-    }
-
-    private void initDailyPositionsForPortfolio(String portfolioId) {
-        LOGGER.info("Adding daily position documents for portfolio '{}'...", portfolioId);
-        for (String symbol :
-                INIT_SYMBOLS) {
-            List<DailyPosition> dailyPositionList = new ArrayList<>();
-            List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
-            for (SecurityHistory securityHistory :
-                    securityHistoryList) {
-                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(1000, 2000)));
-            }
-            dailyPositionRepository.saveAll(dailyPositionList);
-            LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
-        }
-        LOGGER.info("Adding daily position documents for portfolio '{}': Done", portfolioId);
-    }
-
-    private void initBankAccount() {
-        LOGGER.info("Adding bankAccount documents to bank_account collection");
-        bankAccountRepository.deleteAll();
-        bankAccountRepository.save(new BankAccount("1", 12007000.0, "Citibank", "1", new Date()));
-        bankAccountRepository.save(new BankAccount("2", 13006000.0, "Wells Fargo", "1", new Date()));
-        bankAccountRepository.save(new BankAccount("3", 14005000.0, "China Bank", "1", new Date()));
-        LOGGER.info("Adding bankAccount documents to bank_account collection: Done");
+//        this.initBankAccount();
 
     }
 
     private void initUser() {
         LOGGER.info("Adding user documents to user collection...");
         userRepository.deleteAll();
-        userRepository.save(new User("1", "caoyu", "pwd", "caoyu@neueda.com"));
-        userRepository.save(new User("2", "yutongxin", "pwd", "yutongxin@neueda.com"));
-        userRepository.save(new User("3", "duwenyuan", "pwd", "duwenyuan@neueda.com"));
-        userRepository.save(new User("4", "hezhi", "pwd", "hezhi@neueda.com"));
+        userRepository.save(new User("user0001", "caoyu", "pwd", "caoyu@neueda.com"));
+        userRepository.save(new User("user0002", "yutongxin", "pwd", "yutongxin@neueda.com"));
+        userRepository.save(new User("user0003", "duwenyuan", "pwd", "duwenyuan@neueda.com"));
+        userRepository.save(new User("user0004", "hezhi", "pwd", "hezhi@neueda.com"));
         LOGGER.info("Adding user documents to user collection: Done");
     }
 
-    private void initPortfolioNames() {
-        LOGGER.info("Initializing portfolio names...");
-        for (Portfolio portfolio :
-                portfolioRepository.findAll()) {
-            Optional<Security> security = securityRepository.findById(portfolio.getSymbol());
-            if (security.isPresent()) {
-                portfolio.setName(security.get().getName());
-                portfolio.setPurchasePrice(security.get().getHistoryList().get(0).getLow());
-                portfolio.setShares(100);
-                portfolioRepository.save(portfolio);
-            }
-        }
-        LOGGER.info("Initializing portfolio names: Done");
-    }
-
-    private void initPortfolio() {
-        LOGGER.info("Adding initial portfolio documents to collection 'portfolio'");
-        portfolioRepository.deleteAll();
-        for (String symbol :
-                INIT_SYMBOLS) {
-            portfolioRepository.save(new Portfolio("", symbol, 0, 0));
-        }
-        LOGGER.info("Adding initial portfolio documents to collection 'portfolio': Done");
+    private void initTeamPortfolio() {
+        LOGGER.info("Adding teamPortfolio collection...");
+        teamPortfolioRepository.save(new TeamPortfolio("caoyuPortfolio", null, "user0001"));
+        teamPortfolioRepository.save(new TeamPortfolio("yutongxinPortfolio", null, "user0001"));
+        teamPortfolioRepository.save(new TeamPortfolio("duwenyuanPortfolio", null, "user0001"));
+        teamPortfolioRepository.save(new TeamPortfolio("hezhiPortfolio", null, "user0001"));
+        LOGGER.info("Adding teamPortfolio collection:Done");
     }
 
     private void initSecurities() {
@@ -210,8 +92,7 @@ public class SeedDb {
             securityRepository.saveAll(securityList);
 
             LOGGER.info("--Getting security history results for securities in portfolio");
-            List<String> portfolioSymbols = INIT_SYMBOLS;
-            Iterable<Security> portFolioSecurities = securityRepository.findAllById(portfolioSymbols);
+            Iterable<Security> portFolioSecurities = securityRepository.findAllById(INIT_SYMBOLS);
             for (Security security :
                     portFolioSecurities) {
                 LOGGER.info("----Getting security history results of {}", security.getSymbol());
@@ -232,5 +113,122 @@ public class SeedDb {
             LOGGER.error("--apikey for hummingbird is exhausted, please change the api key");
         }
         LOGGER.info("Initializing security documents and security history documents: Done");
+    }
+
+    private void initTransaction() {
+        transactionRepository.deleteAll();
+        for (String portfolioId :
+                teamPortfolioRepository.findAll().stream().map(TeamPortfolio::getId).collect(Collectors.toList())) {
+            this.initTransactionForPortfolio(portfolioId);
+        }
+    }
+
+    private void initTransactionForPortfolio(String portfolioId) {
+        LOGGER.info("Adding transaction for portfolio '{}'...", portfolioId);
+        transactionRepository.deleteAll();
+        for (String symbol :
+                INIT_SYMBOLS) {
+            LOGGER.info("--{}", symbol);
+            List<DailyPosition> dailyPositionList = dailyPositionRepository.findAllBySymbolInPortfolio(portfolioId, symbol);
+            dailyPositionList.sort((o1, o2) -> {
+                long difference = o1.getDate().getTime() - o2.getDate().getTime();
+                if (difference > 0) {
+                    return 1;
+                } else if (difference < 0) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+
+            for (int i = 0; i < dailyPositionList.size(); i++) {
+                DailyPosition dailyPosition = dailyPositionList.get(i);
+                Transaction transaction = new Transaction();
+                if (i == 0) {
+                    transaction.setType(Transaction.TYPE_BUY);
+                    transaction.setPrice(dailyPosition.getSecurityHistory().getOpen());
+                    transaction.setShares(dailyPosition.getShares());
+                } else {
+                    DailyPosition previousPosition = dailyPositionList.get(i - 1);
+                    transaction = this.calculateTransaction(dailyPosition, previousPosition);
+                }
+
+                if (null != transaction) {
+                    transaction.setDate(dailyPosition.getDate());
+                    transaction.setSymbol(dailyPosition.getSecurityHistory().getSymbol());
+                    transaction.setPortfolioId(portfolioId);
+                    transactionRepository.save(transaction);
+                }
+            }
+        }
+        LOGGER.info("Adding transaction for portfolio '{}': Done", portfolioId);
+    }
+
+    private Transaction calculateTransaction(DailyPosition dailyPosition, DailyPosition previousPosition) {
+        Transaction transaction = new Transaction();
+        int shareDiff = dailyPosition.getShares() - previousPosition.getShares();
+        if (shareDiff > 0) {
+            transaction.setType(Transaction.TYPE_BUY);
+            transaction.setPrice(dailyPosition.getSecurityHistory().getOpen());
+        } else if (shareDiff < 0) {
+            transaction.setType(Transaction.TYPE_SELL);
+            transaction.setPrice(previousPosition.getSecurityHistory().getClose());
+        } else {
+            return null;
+        }
+        transaction.setShares(shareDiff);
+        return transaction;
+    }
+
+    private void initDailyPositions() {
+        dailyPositionRepository.deleteAll();
+        for (String portfolioId :
+                teamPortfolioRepository.findAll().stream().map(TeamPortfolio::getId).collect(Collectors.toList())) {
+            this.initDailyPositionsForPortfolio(portfolioId);
+        }
+    }
+
+    private void initDailyPositionsForPortfolio(String portfolioId) {
+        LOGGER.info("Adding daily position documents for portfolio '{}'...", portfolioId);
+        for (String symbol :
+                INIT_SYMBOLS) {
+            List<DailyPosition> dailyPositionList = new ArrayList<>();
+            List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
+            for (SecurityHistory securityHistory :
+                    securityHistoryList) {
+                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(1000, 2000)));
+            }
+            dailyPositionRepository.saveAll(dailyPositionList);
+            LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
+        }
+        LOGGER.info("Adding daily position documents for portfolio '{}': Done", portfolioId);
+    }
+
+
+    @Deprecated
+    private void initPortfolioNames() {
+        LOGGER.info("Initializing portfolio names...");
+        for (Portfolio portfolio :
+                portfolioRepository.findAll()) {
+            Optional<Security> security = securityRepository.findById(portfolio.getSymbol());
+            if (security.isPresent()) {
+                portfolio.setName(security.get().getName());
+                portfolio.setPurchasePrice(security.get().getHistoryList().get(0).getLow());
+                portfolio.setShares(100);
+                portfolioRepository.save(portfolio);
+            }
+        }
+        LOGGER.info("Initializing portfolio names: Done");
+    }
+
+    @Deprecated
+    private void initPortfolio() {
+        LOGGER.info("Adding initial portfolio documents to collection 'portfolio'");
+        portfolioRepository.deleteAll();
+        for (String symbol :
+                INIT_SYMBOLS) {
+            portfolioRepository.save(new Portfolio("", symbol, 0, 0));
+        }
+        LOGGER.info("Adding initial portfolio documents to collection 'portfolio': Done");
     }
 }

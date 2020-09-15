@@ -1,32 +1,24 @@
 package neueda.team1.portfolio_manager.entity;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
 import java.util.Date;
+import java.util.Map;
 
-@Document("bank_account")
 public class BankAccount {
-    @Id
     private String id;
-    private double balance;
-    @Field("bank_name")
-    private String bankName;
-    @Field("user_id")
     private String userId;
-    @Field("lastModified")
-    private Date lastModified;
+    private String bankName;
+    private float balance;
+    private Map<Date, Float> historyBalance;
 
-    public BankAccount() {
+    public BankAccount(String id, String userId, String bankName, float balance, Map<Date, Float> historyBalance) {
+        this.id = id;
+        this.userId = userId;
+        this.bankName = bankName;
+        this.balance = balance;
+        this.historyBalance = historyBalance;
     }
 
-    public BankAccount(String id, double balance, String bank_name, String userId, Date lastModified) {
-        this.id = id;
-        this.balance = balance;
-        this.bankName = bank_name;
-        this.userId = userId;
-        this.lastModified = lastModified;
+    public BankAccount() {
     }
 
     public String getId() {
@@ -37,12 +29,12 @@ public class BankAccount {
         this.id = id;
     }
 
-    public double getBalance() {
-        return balance;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setBalance(double balance) {
-        this.balance = balance;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getBankName() {
@@ -53,21 +45,19 @@ public class BankAccount {
         this.bankName = bankName;
     }
 
-    public String getUserId() {
-        return userId;
+    public float getBalance() {
+        return balance;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setBalance(float balance) {
+        this.balance = balance;
     }
 
-    public Date getLastModified() {
-        return lastModified;
+    public Map<Date, Float> getHistoryBalance() {
+        return historyBalance;
     }
 
-    public void setLastModified(Date lastModified) {
-        this.lastModified = lastModified;
+    public void setHistoryBalance(Map<Date, Float> historyBalance) {
+        this.historyBalance = historyBalance;
     }
-
-
 }

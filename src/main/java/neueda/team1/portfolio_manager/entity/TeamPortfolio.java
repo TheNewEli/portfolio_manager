@@ -2,6 +2,7 @@ package neueda.team1.portfolio_manager.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 
 @Document("team_portfolio")
@@ -9,15 +10,18 @@ public class TeamPortfolio {
     @Id
     private String id;
     private String name;
-    private float cash;
+    @Field("bank_account")
+    private BankAccount bankAccount;
+    @Field("user_id")
+    private String userId;
 
     public TeamPortfolio() {
     }
 
-    public TeamPortfolio(String id, String name, float cash) {
-        this.id = id;
+    public TeamPortfolio(String name, BankAccount bankAccount, String userId) {
         this.name = name;
-        this.cash = cash;
+        this.bankAccount = bankAccount;
+        this.userId = userId;
     }
 
     public String getId() {
@@ -36,11 +40,19 @@ public class TeamPortfolio {
         this.name = name;
     }
 
-    public float getCash() {
-        return cash;
+    public BankAccount getBankAccount() {
+        return bankAccount;
     }
 
-    public void setCash(float cash) {
-        this.cash = cash;
+    public void setBankAccount(BankAccount bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

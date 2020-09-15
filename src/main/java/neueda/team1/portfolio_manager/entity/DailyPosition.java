@@ -10,15 +10,16 @@ import java.util.Date;
 public class DailyPosition {
     @Id
     private String id;
-    private String portfolio_id;
+    @Field("portfolio_id")
+    private String portfolioId;
     private Date date;
     @Field("security_history")
     private SecurityHistory securityHistory;
     private int shares;
 
-    public DailyPosition(String id, String portfolio_id, Date date, SecurityHistory securityHistory, int shares) {
+    public DailyPosition(String id, String portfolioId, Date date, SecurityHistory securityHistory, int shares) {
         this.id = id;
-        this.portfolio_id = portfolio_id;
+        this.portfolioId = portfolioId;
         this.date = date;
         this.securityHistory = securityHistory;
         this.shares = shares;
@@ -27,12 +28,12 @@ public class DailyPosition {
     public DailyPosition() {
     }
 
-    public String getPortfolio_id() {
-        return portfolio_id;
+    public String getPortfolioId() {
+        return portfolioId;
     }
 
-    public void setPortfolio_id(String portfolio_id) {
-        this.portfolio_id = portfolio_id;
+    public void setPortfolioId(String portfolioId) {
+        this.portfolioId = portfolioId;
     }
 
     public Date getDate() {

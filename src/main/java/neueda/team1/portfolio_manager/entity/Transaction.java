@@ -2,12 +2,15 @@ package neueda.team1.portfolio_manager.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 
 public class Transaction {
     @Id
     private String id;
+    @Field("portfolio_id")
+    private String portfolioId;
     private Date date;
     private String type;
     private String symbol;
@@ -15,16 +18,17 @@ public class Transaction {
     private float price;
 
     @Transient
-    public static String TYPE_BUY = "buy";
+    public static final String TYPE_BUY = "buy";
 
     @Transient
-    public static String TYPE_SELL = "sell";
+    public static final String TYPE_SELL = "sell";
 
     public Transaction() {
     }
 
-    public Transaction(String id, Date date, String type, String symbol, int shares, int price) {
+    public Transaction(String id, String portfolioId, Date date, String type, String symbol, int shares, int price) {
         this.id = id;
+        this.portfolioId = portfolioId;
         this.date = date;
         this.type = type;
         this.symbol = symbol;
@@ -38,6 +42,14 @@ public class Transaction {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getPortfolioId() {
+        return portfolioId;
+    }
+
+    public void setPortfolioId(String portfolioId) {
+        this.portfolioId = portfolioId;
     }
 
     public Date getDate() {
