@@ -22,10 +22,10 @@ public class SeedDb {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     public static final List<String> INIT_SYMBOLS = Arrays.asList("EBAY", "ZNGA", "YELP", "YNDX", "SPWR",
-            "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO", "FEYE",
+            "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO",
             "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
     public static final int INIT_BALANCE = 10000000;
-    @Value("${hummingbird.apikey.5}")
+    @Value("${hummingbird.apikey.6}")
     private String API_KEY;
 
     private final PortfolioRepository portfolioRepository;
@@ -56,7 +56,7 @@ public class SeedDb {
             this.initUser();
             this.initTeamPortfolio();
 //            this.initPortfolio();//deprecated
-            this.initSecurities(); // Comment out this line if your database is already initiated
+//            this.initSecurities(); // Comment out this line if your database is already initiated
 //            this.initPortfolioNames();//deprecated
             this.initDailyPositions();
             this.initTransaction();
@@ -136,9 +136,15 @@ public class SeedDb {
                 INIT_SYMBOLS) {
             List<DailyPosition> dailyPositionList = new ArrayList<>();
             List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
+            int count = 0;
+            int randomInt = NumUtil.randomInt(100, 10000);
             for (SecurityHistory securityHistory :
                     securityHistoryList) {
-                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(100, 10000)));
+                count++;
+                if (count % 7 == 0) {
+                    randomInt = NumUtil.randomInt(1000, 2000);
+                }
+                dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, randomInt));
             }
             dailyPositionRepository.saveAll(dailyPositionList);
             LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
@@ -251,7 +257,7 @@ public class SeedDb {
             bankAccount.setBankName("CitiBank");
             bankAccount.setUserId(portfolio.getUserId());
             bankAccount.setHistoryBalance(historyBalance);
-
+            System.out.println(historyBalance.size());
             portfolio.setBankAccount(bankAccount);
             teamPortfolioRepository.save(portfolio);
         }
