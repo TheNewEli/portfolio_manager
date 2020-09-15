@@ -1,7 +1,10 @@
 package neueda.team1.portfolio_manager.entity;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.Date;
 
+@Document("security_history")
 public class SecurityHistory {
     private Date datetime;
     private Float open;
@@ -9,6 +12,7 @@ public class SecurityHistory {
     private Float low;
     private Float close;
     private Float volume;
+    private String symbol;
 
     public SecurityHistory(Date datetime, Float open, Float high, Float low, Float close, Float volume, String symbol) {
         this.datetime = datetime;
@@ -17,6 +21,7 @@ public class SecurityHistory {
         this.low = low;
         this.close = close;
         this.volume = volume;
+        this.symbol = symbol;
     }
 
     public SecurityHistory() {
@@ -68,5 +73,14 @@ public class SecurityHistory {
 
     public void setVolume(Float volume) {
         this.volume = volume;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
     }
 }

@@ -2,10 +2,9 @@ package neueda.team1.portfolio_manager;
 
 import neueda.team1.portfolio_manager.entity.*;
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
-import neueda.team1.portfolio_manager.repository.BankAccountRepository;
-import neueda.team1.portfolio_manager.repository.SecurityRepository;
-import neueda.team1.portfolio_manager.repository.UserRepository;
+import neueda.team1.portfolio_manager.repository.*;
 import neueda.team1.portfolio_manager.repository.repository_ytx.PortfolioRepository;
+import neueda.team1.portfolio_manager.util.NumUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,58 +12,91 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Component
 public class SeedDb {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-
-    @Value("${hummingbird.apikey.2}")
+    public static final List<String> INIT_SYMBOLS = Arrays.asList("EBAY", "ZNGA", "YELP", "YNDX", "SPWR",
+            "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO", "FEYE",
+            "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
+    @Value("${hummingbird.apikey.3}")
     private String API_KEY;
 
     private final PortfolioRepository portfolioRepository;
     private final SecurityRepository securityRepository;
+    private final SecurityHistoryRepository securityHistoryRepository;
     private final UserRepository userRepository;
     private final BankAccountRepository bankAccountRepository;
+    private final DailyPositionRepository dailyPositionRepository;
 
     public SeedDb(PortfolioRepository portfolioRepository, SecurityRepository securityRepository,
-                  UserRepository userRepository, BankAccountRepository bankAccountRepository) {
+                  SecurityHistoryRepository securityHistoryRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository, DailyPositionRepository dailyPositionRepository) {
         this.portfolioRepository = portfolioRepository;
         this.securityRepository = securityRepository;
+        this.securityHistoryRepository = securityHistoryRepository;
         this.userRepository = userRepository;
         this.bankAccountRepository = bankAccountRepository;
+        this.dailyPositionRepository = dailyPositionRepository;
     }
 
     @PostConstruct
     public void initDb() {
-        this.initPortfolio();
-        this.initSecurities(); // Comment out this line if your database is already initiated
-        this.initPortfolioNames();
         this.initUser();
         this.initBankAccount();
+        this.initPortfolio();//deprecated
+        this.initSecurities(); // Comment out this line if your database is already initiated
+        this.initPortfolioNames();//deprecated
+        this.initDailyPositions();
+    }
+
+    private void initDailyPositions() {
+        dailyPositionRepository.deleteAll();
+        List<String> portfolioIdList = Arrays.asList("CY123456");
+        for (String id :
+                portfolioIdList) {
+            this.initDailyPositionsForPortfolio(id);
+        }
+    }
+
+    private void initDailyPositionsForPortfolio(String portfolioId) {
+        LOGGER.info("Adding daily position documents for portfolio '{portfolioId}'...", portfolioId);
+        for (String symbol :
+                INIT_SYMBOLS) {
+            List<DailyPosition> dailyPositionList = new ArrayList<>();
+            List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
+            for (SecurityHistory securityHistory :
+                    securityHistoryList) {
+                dailyPositionList.add(new DailyPosition(portfolioId, securityHistory.getDatetime(), securityHistory, NumUtil.randomInt(1000)));
+            }
+            dailyPositionRepository.saveAll(dailyPositionList);
+            LOGGER.info("--adding {} daily position records of symbol: '{}' for portfolio '{}' to collection 'daily_position'", dailyPositionList.size(), symbol, portfolioId);
+        }
+        LOGGER.info("Adding daily position documents for portfolio '{portfolioId}': Done", portfolioId);
     }
 
     private void initBankAccount() {
+        LOGGER.info("Adding bankAccount documents to bank_account collection");
         bankAccountRepository.deleteAll();
         bankAccountRepository.save(new BankAccount("1", 12007000.0, "Citibank", "1", new Date()));
         bankAccountRepository.save(new BankAccount("2", 13006000.0, "Wells Fargo", "1", new Date()));
         bankAccountRepository.save(new BankAccount("3", 14005000.0, "China Bank", "1", new Date()));
+        LOGGER.info("Adding bankAccount documents to bank_account collection: Done");
 
     }
 
     private void initUser() {
+        LOGGER.info("Adding user documents to user collection...");
         userRepository.deleteAll();
         userRepository.save(new User("1", "caoyu", "pwd", "caoyu@neueda.com"));
         userRepository.save(new User("2", "yutongxin", "pwd", "yutongxin@neueda.com"));
         userRepository.save(new User("3", "duwenyuan", "pwd", "duwenyuan@neueda.com"));
         userRepository.save(new User("4", "hezhi", "pwd", "hezhi@neueda.com"));
+        LOGGER.info("Adding user documents to user collection: Done");
     }
 
     private void initPortfolioNames() {
+        LOGGER.info("Initializing portfolio names...");
         for (Portfolio portfolio :
                 portfolioRepository.findAll()) {
             Optional<Security> security = securityRepository.findById(portfolio.getSymbol());
@@ -75,41 +107,21 @@ public class SeedDb {
                 portfolioRepository.save(portfolio);
             }
         }
+        LOGGER.info("Initializing portfolio names: Done");
     }
 
     private void initPortfolio() {
-        LOGGER.info("Adding 20 initial portfolio documents");
+        LOGGER.info("Adding initial portfolio documents to collection 'portfolio'");
         portfolioRepository.deleteAll();
-        portfolioRepository.save(new Portfolio("", "EBAY", 0, 0));
-        portfolioRepository.save(new Portfolio("", "ZNGA", 0, 0));
-        portfolioRepository.save(new Portfolio("", "YELP", 0, 0));
-        portfolioRepository.save(new Portfolio("", "YNDX", 0, 0));
-        portfolioRepository.save(new Portfolio("", "SPWR", 0, 0));
-        portfolioRepository.save(new Portfolio("", "SSYS", 0, 0));
-        portfolioRepository.save(new Portfolio("", "SPLK", 0, 0));
-        portfolioRepository.save(new Portfolio("", "SAP", 0, 0));
-        portfolioRepository.save(new Portfolio("", "RP", 0, 0));
-        portfolioRepository.save(new Portfolio("", "PANW", 0, 0));
-        portfolioRepository.save(new Portfolio("", "LN", 0, 0));
-        portfolioRepository.save(new Portfolio("", "IRBT", 0, 0));
-        portfolioRepository.save(new Portfolio("", "ILMN", 0, 0));
-        portfolioRepository.save(new Portfolio("", "IBM", 0, 0));
-        portfolioRepository.save(new Portfolio("", "GRPN", 0, 0));
-        portfolioRepository.save(new Portfolio("", "GDOT", 0, 0));
-        portfolioRepository.save(new Portfolio("", "GOGO", 0, 0));
-        portfolioRepository.save(new Portfolio("", "FEYE", 0, 0));
-        portfolioRepository.save(new Portfolio("", "FB", 0, 0));
-        portfolioRepository.save(new Portfolio("", "FEYE", 0, 0));
-        portfolioRepository.save(new Portfolio("", "ENV", 0, 0));
-        portfolioRepository.save(new Portfolio("", "BYND", 0, 0));
-        portfolioRepository.save(new Portfolio("", "Y", 0, 0));
-        portfolioRepository.save(new Portfolio("", "ADBE", 0, 0));
-        portfolioRepository.save(new Portfolio("", "T", 0, 0));
-        portfolioRepository.save(new Portfolio("", "MMM", 0, 0));
+        for (String symbol :
+                INIT_SYMBOLS) {
+            portfolioRepository.save(new Portfolio("", symbol, 0, 0));
+        }
+        LOGGER.info("Adding initial portfolio documents to collection 'portfolio': Done");
     }
 
     private void initSecurities() {
-        LOGGER.info("Initializing stock documents:");
+        LOGGER.info("Initializing security documents and security history documents:...");
         RestTemplate restTemplate = new RestTemplate();
         LOGGER.info("--Getting security results");
         SecurityResult securityResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/markets?apikey={API_KEY}", SecurityResult.class, API_KEY);
@@ -120,8 +132,7 @@ public class SeedDb {
             securityRepository.saveAll(securityList);
 
             LOGGER.info("--Getting security history results for securities in portfolio");
-            List<Portfolio> portfolioList = portfolioRepository.findAll();
-            Set<String> portfolioSymbols = portfolioList.stream().map(Portfolio::getSymbol).collect(Collectors.toSet());
+            List<String> portfolioSymbols = INIT_SYMBOLS;
             Iterable<Security> portFolioSecurities = securityRepository.findAllById(portfolioSymbols);
             for (Security security :
                     portFolioSecurities) {
@@ -131,13 +142,17 @@ public class SeedDb {
                 SecurityHistoryResult securityHistoryResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/history?apikey={API_KEY}&symbol={symbol}&start_date={startDate}", SecurityHistoryResult.class, API_KEY, symbol, startDate);
                 assert securityHistoryResult != null;
                 assert securityHistoryResult.getData() != null;
+
                 List<SecurityHistory> allSecurityHistoryList = securityHistoryResult.getData();
                 security.setHistoryList(allSecurityHistoryList);
                 security.setType(Security.TYPE_STOCK);
+                allSecurityHistoryList.forEach(securityHistory -> securityHistory.setSymbol(symbol));
+                securityHistoryRepository.saveAll(allSecurityHistoryList);
                 securityRepository.save(security);
             }
         } else if (securityResult.getStatus().equals("fail")) {
             LOGGER.error("--apikey for hummingbird is exhausted, please change the api key");
         }
+        LOGGER.info("Initializing security documents and security history documents: Done");
     }
 }
