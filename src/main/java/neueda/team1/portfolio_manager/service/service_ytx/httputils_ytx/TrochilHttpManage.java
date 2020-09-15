@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
 import neueda.team1.portfolio_manager.service.service_ytx.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import java.util.Optional;
@@ -20,7 +21,8 @@ import java.util.Optional;
 public class TrochilHttpManage {
 
     private static final String TROCHIL_URL = "https://api.trochil.cn/v1/usstock/quote";
-    private static final String APIKEY_YTX = "apikey=7203a7692fa631c0e8d393e216b637c1";
+    @Value("apikey=${hummingbird.apikey.5}")
+    private String APIKEY_YTX;
 
     @Autowired
     PortfolioService portfolioService;
