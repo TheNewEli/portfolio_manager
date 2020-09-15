@@ -114,28 +114,30 @@ public class SeedDb {
         LOGGER.info("--Getting security results");
         SecurityResult securityResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/markets?apikey={API_KEY}", SecurityResult.class, API_KEY);
         assert securityResult != null;
-        assert securityResult.getData() != null;
-        List<Security> securityList = securityResult.getData();
-        securityRepository.saveAll(securityList);
+        if (securityResult.getStatus().equals("ok")) {
+            assert securityResult.getData() != null;
+            List<Security> securityList = securityResult.getData();
+            securityRepository.saveAll(securityList);
 
-        LOGGER.info("--Getting security history results for securities in portfolio");
-        List<Portfolio> portfolioList = portfolioRepository.findAll();
-        Set<String> portfolioSymbols = portfolioList.stream().map(portfolio -> portfolio.getSymbol()).collect(Collectors.toSet());
-        Iterable<Security> portFolioSecurities = securityRepository.findAllById(portfolioSymbols);
-        for (Security security :
-                portFolioSecurities) {
-            LOGGER.info("----Getting security history results of {}", security.getSymbol());
-            String symbol = security.getSymbol();
-            String startDate = "2016-01-01";
-            SecurityHistoryResult securityHistoryResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/history?apikey={API_KEY}&symbol={symbol}&start_date={startDate}", SecurityHistoryResult.class, API_KEY, symbol, startDate);
-            assert securityHistoryResult != null;
-            assert securityHistoryResult.getData() != null;
-            List<SecurityHistory> allSecurityHistoryList = securityHistoryResult.getData();
-            security.setHistoryList(allSecurityHistoryList);
-            security.setType(Security.TYPE_STOCK);
-            securityRepository.save(security);
+            LOGGER.info("--Getting security history results for securities in portfolio");
+            List<Portfolio> portfolioList = portfolioRepository.findAll();
+            Set<String> portfolioSymbols = portfolioList.stream().map(Portfolio::getSymbol).collect(Collectors.toSet());
+            Iterable<Security> portFolioSecurities = securityRepository.findAllById(portfolioSymbols);
+            for (Security security :
+                    portFolioSecurities) {
+                LOGGER.info("----Getting security history results of {}", security.getSymbol());
+                String symbol = security.getSymbol();
+                String startDate = "2016-01-01";
+                SecurityHistoryResult securityHistoryResult = restTemplate.getForObject("https://api.trochil.cn/v1/usstock/history?apikey={API_KEY}&symbol={symbol}&start_date={startDate}", SecurityHistoryResult.class, API_KEY, symbol, startDate);
+                assert securityHistoryResult != null;
+                assert securityHistoryResult.getData() != null;
+                List<SecurityHistory> allSecurityHistoryList = securityHistoryResult.getData();
+                security.setHistoryList(allSecurityHistoryList);
+                security.setType(Security.TYPE_STOCK);
+                securityRepository.save(security);
+            }
+        } else if (securityResult.getStatus().equals("fail")) {
+            LOGGER.error("--apikey for hummingbird is exhausted, please change the api key");
         }
     }
-
-
 }
