@@ -17,6 +17,7 @@ public class Security {
     private String name;
     private String exchange;
     private String type;
+    @Field("history_list")
     private List<SecurityHistory> historyList;
 
     public Security() {

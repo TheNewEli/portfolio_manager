@@ -5,10 +5,21 @@ import org.springframework.data.annotation.Id;
 import java.io.Serializable;
 
 public class User implements Serializable {
+    @Id
     private String id;
     private String name;
     private String password;
     private String email;
+
+    public User() {
+    }
+
+    public User(String id, String name, String password, String email) {
+        this.id = id;
+        this.name = name;
+        this.password = password;
+        this.email = email;
+    }
 
     public String getId() {
         return id;
