@@ -25,7 +25,7 @@ public class SeedDb {
             "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO",
             "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
     public static final int INIT_BALANCE = 10000000;
-    @Value("${hummingbird.apikey.2}")
+    @Value("${hummingbird.apikey}")
     private String API_KEY;
 
     private final PortfolioRepository portfolioRepository;

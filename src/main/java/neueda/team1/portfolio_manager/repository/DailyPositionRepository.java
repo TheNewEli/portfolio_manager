@@ -17,6 +17,5 @@ public interface DailyPositionRepository extends MongoRepository<DailyPosition, 
     @Query("{'portfolio_id' : ?0, 'date' : ?1}")
     List<DailyPosition> findAllByPortfolioId(String portfolioId);
 
-    @Query("{'portfolio_id' : ?0, 'security_history.symbol':?1, 'date':?2}}")
-    List<DailyPosition> findOneBySymbolAndDateInPortfolio(String portfolioId, String symbol, Date date);
+
 }
