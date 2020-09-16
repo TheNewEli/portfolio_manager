@@ -25,7 +25,7 @@ public class SeedDb {
             "SSYS", "SPLK", "SAP", "RP", "PANW", "LN", "IRBT", "ILMN", "IBM", "GRPN", "GDOT", "GOGO",
             "FB", "FEYE", "ENV", "BYND", "Y", "ADBE", "T", "MMM");
     public static final int INIT_BALANCE = 10000000;
-    @Value("${hummingbird.apikey.6}")
+    @Value("${hummingbird.apikey.2}")
     private String API_KEY;
 
     private final PortfolioRepository portfolioRepository;
@@ -137,12 +137,12 @@ public class SeedDb {
             List<DailyPosition> dailyPositionList = new ArrayList<>();
             List<SecurityHistory> securityHistoryList = securityHistoryRepository.findAllBySymbol(symbol);
             int count = 0;
-            int randomInt = NumUtil.randomInt(100, 10000);
+            int randomInt = NumUtil.randomInt(4000, 5000);
             for (SecurityHistory securityHistory :
                     securityHistoryList) {
                 count++;
                 if (count % 7 == 0) {
-                    randomInt = NumUtil.randomInt(1000, 2000);
+                    randomInt = NumUtil.randomInt(4000, 5000);
                 }
                 dailyPositionList.add(new DailyPosition(null, portfolioId, securityHistory.getDatetime(), securityHistory, randomInt));
             }
@@ -223,21 +223,20 @@ public class SeedDb {
 
     private void initBankAccount() {
         //        2016-01-04T00:00:00.000Z
-        Calendar startCalendar = Calendar.getInstance();
-        startCalendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (TeamPortfolio portfolio :
                 teamPortfolioRepository.findAll()) {
 
-            startCalendar.set(2016, Calendar.JANUARY, 1, 0, 0, 0);
-            startCalendar.set(Calendar.MILLISECOND, 0);
+            calendar.set(2016, Calendar.JANUARY, 1, 0, 0, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
 
             LOGGER.info("setting bankAccount for portfolio '{}'", portfolio.getId());
-            Map<Date, Float> historyBalance = new HashMap<>();
+            Map<Date, Double> historyBalance = new HashMap<>();
             Date today = new Date();
-            Calendar calendar = startCalendar;
 
-            float tempBalance = INIT_BALANCE;
+            double tempBalance = INIT_BALANCE;
             historyBalance.put(calendar.getTime(), tempBalance);
             while (calendar.getTime().before(today)) {
                 calendar.add(Calendar.DATE, 1);

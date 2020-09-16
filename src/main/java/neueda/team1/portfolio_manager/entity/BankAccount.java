@@ -10,10 +10,10 @@ public class BankAccount {
     private String id;
     private String userId;
     private String bankName;
-    private float balance;
-    private Map<Date, Float> historyBalance;
+    private Double balance;
+    private Map<Date, Double> historyBalance;
 
-    public BankAccount(String id, String userId, String bankName, float balance, Map<Date, Float> historyBalance) {
+    public BankAccount(String id, String userId, String bankName, double balance, Map<Date, Double> historyBalance) {
         this.id = id;
         this.userId = userId;
         this.bankName = bankName;
@@ -48,19 +48,19 @@ public class BankAccount {
         this.bankName = bankName;
     }
 
-    public float getBalance() {
+    public double getBalance() {
         return balance;
     }
 
-    public void setBalance(float balance) {
+    public void setBalance(double balance) {
         this.balance = balance;
     }
 
-    public Map<Date, Float> getHistoryBalance() {
+    public Map<Date, Double> getHistoryBalance() {
         return historyBalance;
     }
 
-    public void setHistoryBalance(Map<Date, Float> historyBalance) {
+    public void setHistoryBalance(Map<Date, Double> historyBalance) {
         this.historyBalance = historyBalance;
     }
 }

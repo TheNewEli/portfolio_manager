@@ -9,8 +9,11 @@ import java.util.List;
 
 public interface DailyPositionRepository extends MongoRepository<DailyPosition, String> {
     @Query("{'portfolio_id' : ?0, 'security_history.symbol':?1}}}")
-    public List<DailyPosition> findAllBySymbolInPortfolio(String portfolioId, String symbol);
+    List<DailyPosition> findAllBySymbolInPortfolio(String portfolioId, String symbol);
+
+    @Query("{'portfolio_id' : ?0, 'date' : ?1}}}")
+    List<DailyPosition> findAllByDateAndPortfolioId(String portfolioId, Date date);
 
     @Query("{'portfolio_id' : ?0, 'security_history.symbol':?1, 'date':{2}}}}")
-    public List<DailyPosition> findOneBySymbolAndDateInPortfolio(String portfolioId, String symbol, Date date);
+    List<DailyPosition> findOneBySymbolAndDateInPortfolio(String portfolioId, String symbol, Date date);
 }

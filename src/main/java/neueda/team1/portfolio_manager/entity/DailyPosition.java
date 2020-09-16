@@ -28,6 +28,10 @@ public class DailyPosition {
     public DailyPosition() {
     }
 
+    public float getValue() {
+        return this.shares * this.securityHistory.getClose();
+    }
+
     public String getPortfolioId() {
         return portfolioId;
     }
