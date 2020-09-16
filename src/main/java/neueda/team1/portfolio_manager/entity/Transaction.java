@@ -15,7 +15,7 @@ public class Transaction {
     private String type;
     private String symbol;
     private int shares;
-    private float price;
+    private Double price;
 
     @Transient
     public static final String TYPE_BUY = "buy";
@@ -26,7 +26,7 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(String id, String portfolioId, Date date, String type, String symbol, int shares, int price) {
+    public Transaction(String id, String portfolioId, Date date, String type, String symbol, int shares, Double price) {
         this.id = id;
         this.portfolioId = portfolioId;
         this.date = date;
@@ -34,6 +34,10 @@ public class Transaction {
         this.symbol = symbol;
         this.shares = shares;
         this.price = price;
+    }
+
+    public Double getBanceChange() {
+        return -1 * this.getShares() * this.getPrice();
     }
 
     public String getId() {
@@ -84,11 +88,11 @@ public class Transaction {
         this.shares = shares;
     }
 
-    public float getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 }
