@@ -22,43 +22,6 @@ public class NetWorthService {
         this.teamPortfolioRepository = teamPortfolioRepository;
     }
 
-
-    public Map<Date, Double> getLastWeekNetWorth(String portfolioId) {
-        return this.getLastDaysNetWorth(portfolioId, 7);
-    }
-
-    public Map<Date, Double> getLastMonthNetWorth(String portfolioId) {
-        return this.getLastDaysNetWorth(portfolioId, 30);
-    }
-
-    public Map<Date, Double> getLastQuarterNetWorth(String portfolioId) {
-        return this.getLastDaysNetWorth(portfolioId, 90);
-    }
-
-    public Map<Date, Double> getLastWeekCashValue(String portfolioId) {
-        return this.getLastDaysCashValue(portfolioId, 7);
-    }
-
-    public Map<Date, Double> getLastMonthCashValue(String portfolioId) {
-        return this.getLastDaysCashValue(portfolioId, 30);
-    }
-
-    public Map<Date, Double> getLastQuarterCashValue(String portfolioId) {
-        return this.getLastDaysCashValue(portfolioId, 90);
-    }
-
-    public Map<Date, Double> getLastWeekStockValue(String portfolioId) {
-        return this.getLastDaysStockValue(portfolioId, 7);
-    }
-
-    public Map<Date, Double> getLastMonthStockValue(String portfolioId) {
-        return this.getLastDaysStockValue(portfolioId, 30);
-    }
-
-    public Map<Date, Double> getLastQuarterStockValue(String portfolioId) {
-        return this.getLastDaysStockValue(portfolioId, 90);
-    }
-
     public Map<Date, Double> getLastDaysNetWorth(String portfolioId, int dayCount) {
         Map<Date, Double> stockValueMap = this.getLastDaysStockValue(portfolioId, dayCount);
         Map<Date, Double> cashValueMap = this.getLastDaysCashValue(portfolioId, dayCount);

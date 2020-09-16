@@ -21,37 +21,38 @@ public class NetWorthController {
 
     @GetMapping(value = "netWorth/{period}", produces = {"application/json"})
     public ResponseEntity<Map<Date, Double>> getNetWorth(@PathVariable String period) {
-        Map<Date, Double> netWortList;
+        Map<Date, Double> netWortMap;
         switch (period) {
-            case "week" -> netWortList = netWorthService.getLastWeekNetWorth(PORTFOLIO_ID);
-            case "month" -> netWortList = netWorthService.getLastMonthNetWorth(PORTFOLIO_ID);
-            case "quarter" -> netWortList = netWorthService.getLastQuarterNetWorth(PORTFOLIO_ID);
+            case "week" -> netWortMap = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, 7);
+            case "month" -> netWortMap = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, 30);
+            case "quarter" -> netWortMap = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, 90);
             default -> {
                 int dayCount = Integer.parseInt(period);
-                netWortList = this.getNetWorthByDayCount(dayCount).getBody();
+                netWortMap = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, dayCount);
             }
         }
-        return ResponseEntity.ok().body(netWortList);
+        return ResponseEntity.ok().body(netWortMap);
     }
 
     @GetMapping(value = "cashValue/{period}", produces = {"application/json"})
     public ResponseEntity<Map<Date, Double>> getCashValue(@PathVariable String period) {
-        Map<Date, Double> cashValueList = new HashMap<>();
+        Map<Date, Double> cashValueMap = new HashMap<>();
         switch (period) {
             case "week":
-                cashValueList = netWorthService.getLastWeekCashValue(PORTFOLIO_ID);
+                cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 7);
                 break;
             case "month":
-                cashValueList = netWorthService.getLastMonthCashValue(PORTFOLIO_ID);
+                cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 30);
                 break;
             case "quarter":
-                cashValueList = netWorthService.getLastQuarterCashValue(PORTFOLIO_ID);
+                cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 90);
                 break;
             default:
                 int dayCount = Integer.parseInt(period);
+                cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, dayCount);
                 break;
         }
-        return ResponseEntity.ok().body(cashValueList);
+        return ResponseEntity.ok().body(cashValueMap);
     }
 
     @GetMapping(value = "stockValue/{period}", produces = {"application/json"})
@@ -59,37 +60,38 @@ public class NetWorthController {
         Map<Date, Double> stockValueMap = new HashMap<>();
         switch (period) {
             case "week":
-                stockValueMap = netWorthService.getLastWeekStockValue(PORTFOLIO_ID);
+                stockValueMap = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, 7);
                 break;
             case "month":
-                stockValueMap = netWorthService.getLastMonthStockValue(PORTFOLIO_ID);
+                stockValueMap = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, 30);
                 break;
             case "quarter":
-                stockValueMap = netWorthService.getLastQuarterStockValue(PORTFOLIO_ID);
+                stockValueMap = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, 90);
                 break;
             default:
                 int dayCount = Integer.parseInt(period);
+                stockValueMap = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, dayCount);
                 break;
         }
         return ResponseEntity.ok().body(stockValueMap);
     }
 
-    @GetMapping(value = "netWorth/days/{dayCount}", produces = {"application/json"})
-    public ResponseEntity<Map<Date, Double>> getNetWorthByDayCount(@PathVariable int dayCount) {
-        Map<Date, Double> netWortList = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, dayCount);
-        return ResponseEntity.ok().body(netWortList);
-    }
-
-    @GetMapping(value = "cashValue/days/{dayCount}", produces = {"application/json"})
-    public ResponseEntity<Map<Date, Double>> getCashValueByDayCount(@PathVariable int dayCount) {
-        Map<Date, Double> netWortList = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, dayCount);
-        return ResponseEntity.ok().body(netWortList);
-    }
-
-    @GetMapping(value = "stockValue/days/{dayCount}", produces = {"application/json"})
-    public ResponseEntity<Map<Date, Double>> getStockValueByDayCount(@PathVariable int dayCount) {
-        Map<Date, Double> netWortList = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, dayCount);
-        return ResponseEntity.ok().body(netWortList);
-    }
+//    @GetMapping(value = "netWorth/days/{dayCount}", produces = {"application/json"})
+//    public ResponseEntity<Map<Date, Double>> getNetWorthByDayCount(@PathVariable int dayCount) {
+//        Map<Date, Double> netWortList = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, dayCount);
+//        return ResponseEntity.ok().body(netWortList);
+//    }
+//
+//    @GetMapping(value = "cashValue/days/{dayCount}", produces = {"application/json"})
+//    public ResponseEntity<Map<Date, Double>> getCashValueByDayCount(@PathVariable int dayCount) {
+//        Map<Date, Double> netWortList = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, dayCount);
+//        return ResponseEntity.ok().body(netWortList);
+//    }
+//
+//    @GetMapping(value = "stockValue/days/{dayCount}", produces = {"application/json"})
+//    public ResponseEntity<Map<Date, Double>> getStockValueByDayCount(@PathVariable int dayCount) {
+//        Map<Date, Double> netWortList = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, dayCount);
+//        return ResponseEntity.ok().body(netWortList);
+//    }
 
 }
