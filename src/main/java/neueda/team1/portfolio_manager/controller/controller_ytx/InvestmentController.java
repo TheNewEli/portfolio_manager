@@ -45,9 +45,6 @@ public class InvestmentController {
     @Autowired
     PortfolioService portfolioService;
 
-    @Autowired
-    Date zeroToday;
-
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 
@@ -59,7 +56,7 @@ public class InvestmentController {
         //for(TeamPortfolio portfolio:portfolios){
             Page<DailyPosition> positions = getLatestPositions();
             for(DailyPosition dp:positions){
-                LOGGER.info("DailyPosition Date:"+dp.getDate());
+                LOGGER.info("DailyPosition Id:"+dp.getId());
                 JsonElement jsonElement= supplementInvestment(dp);
                 if(null == jsonElement){
                     continue;
