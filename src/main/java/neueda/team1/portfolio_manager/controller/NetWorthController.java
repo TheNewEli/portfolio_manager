@@ -34,17 +34,28 @@ public class NetWorthController {
 
     @GetMapping(value = "cash/{period}", produces = {"application/json"})
     public ResponseEntity<List<List<String>>> getCashValue(@PathVariable String period) {
-        Map<Date, Double> cashValueMap;
-        switch (period) {
-            case "week" -> cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 7);
-            case "month" -> cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 30);
-            case "quarter" -> cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 90);
-            default -> {
-                int dayCount = Integer.parseInt(period);
-                cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, dayCount);
-            }
+        ResponseEntity<List<List<String>>> netWorthResponse = this.getNetWorth(period);
+        ResponseEntity<List<List<String>>> stockValueResponse = this.getStockValue(period);
+
+        List<String> dateList = netWorthResponse.getBody().get(0);
+        List<String> netWorthList = netWorthResponse.getBody().get(1);
+        List<String> stockValueList = stockValueResponse.getBody().get(1);
+
+        List<String> cashValueList = new ArrayList<>();
+        double netWorth = 0;
+        double stockValue = 0;
+        double cashValue = 0;
+        for (int i = 0; i < netWorthList.size(); i++) {
+            netWorth = Double.valueOf(netWorthList.get(i));
+            stockValue = Double.valueOf(stockValueList.get(i));
+            cashValue = netWorth - stockValue;
+            cashValueList.add(String.format("%.2f", cashValue));
         }
-        return ResponseEntity.ok().body(NetWorthService.buildResponseList(cashValueMap));
+
+        List<List<String>> response = new ArrayList<>();
+        response.add(dateList);
+        response.add(cashValueList);
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping(value = "stock/{period}", produces = {"application/json"})
