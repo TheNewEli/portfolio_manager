@@ -8,16 +8,27 @@ import neueda.team1.portfolio_manager.repository.TeamPortfolioRepository;
 import neueda.team1.portfolio_manager.util.DateUtil;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class NetWorthService {
-    private final SecurityRepository securityRepository;
     private final DailyPositionRepository dailyPositionRepository;
     private final TeamPortfolioRepository teamPortfolioRepository;
 
-    public NetWorthService(SecurityRepository securityRepository, DailyPositionRepository dailyPositionRepository, TeamPortfolioRepository teamPortfolioRepository) {
-        this.securityRepository = securityRepository;
+    public static List<List<String>> buildResponseList(Map<Date, Double> map) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
+        List<String> valueList = map.values().stream().map(num -> String.format("%.2f", num)).collect(Collectors.toList());
+        List<String> keyList = map.keySet().stream().map(dateFormat::format).collect(Collectors.toList());
+        List<List<String>> response = new ArrayList<>();
+        response.add(keyList);
+        response.add(valueList);
+        return response;
+    }
+
+    public NetWorthService(DailyPositionRepository dailyPositionRepository, TeamPortfolioRepository teamPortfolioRepository) {
         this.dailyPositionRepository = dailyPositionRepository;
         this.teamPortfolioRepository = teamPortfolioRepository;
     }
@@ -25,7 +36,7 @@ public class NetWorthService {
     public Map<Date, Double> getLastDaysNetWorth(String portfolioId, int dayCount) {
         Map<Date, Double> stockValueMap = this.getLastDaysStockValue(portfolioId, dayCount);
         Map<Date, Double> cashValueMap = this.getLastDaysCashValue(portfolioId, dayCount);
-        Map<Date, Double> netWorthMap = new HashMap<>();
+        Map<Date, Double> netWorthMap = new TreeMap<>();
 
         double netWorth;
         for (Date key :
@@ -38,7 +49,7 @@ public class NetWorthService {
     }
 
     public Map<Date, Double> getLastDaysStockValue(String portfolioId, int dayCount) {
-        Map<Date, Double> stockValueMap = new HashMap<>();
+        Map<Date, Double> stockValueMap = new TreeMap<>();
 
         Date today = DateUtil.getToday();
         Date startDay = DateUtil.getDateBeforeToday(dayCount);
@@ -61,7 +72,7 @@ public class NetWorthService {
     }
 
     public Map<Date, Double> getLastDaysCashValue(String portfolioId, int dayCount) {
-        Map<Date, Double> stockValueMap = new HashMap<>();
+        Map<Date, Double> stockValueMap = new TreeMap<>();
 
         Date today = DateUtil.getToday();
         Date startDay = DateUtil.getDateBeforeToday(dayCount);

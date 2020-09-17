@@ -18,7 +18,7 @@ public class NetWorthController {
     }
 
     @GetMapping(value = "/{period}", produces = {"application/json"})
-    public ResponseEntity<Map<Date, Double>> getNetWorth(@PathVariable String period) {
+    public ResponseEntity<List<List<String>>> getNetWorth(@PathVariable String period) {
         Map<Date, Double> netWortMap;
         switch (period) {
             case "week" -> netWortMap = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, 7);
@@ -29,11 +29,11 @@ public class NetWorthController {
                 netWortMap = netWorthService.getLastDaysNetWorth(PORTFOLIO_ID, dayCount);
             }
         }
-        return ResponseEntity.ok().body(netWortMap);
+        return ResponseEntity.ok().body(NetWorthService.buildResponseList(netWortMap));
     }
 
     @GetMapping(value = "cash/{period}", produces = {"application/json"})
-    public ResponseEntity<Map<Date, Double>> getCashValue(@PathVariable String period) {
+    public ResponseEntity<List<List<String>>> getCashValue(@PathVariable String period) {
         Map<Date, Double> cashValueMap;
         switch (period) {
             case "week" -> cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, 7);
@@ -44,11 +44,11 @@ public class NetWorthController {
                 cashValueMap = netWorthService.getLastDaysCashValue(PORTFOLIO_ID, dayCount);
             }
         }
-        return ResponseEntity.ok().body(cashValueMap);
+        return ResponseEntity.ok().body(NetWorthService.buildResponseList(cashValueMap));
     }
 
     @GetMapping(value = "stock/{period}", produces = {"application/json"})
-    public ResponseEntity<Map<Date, Double>> getStockValue(@PathVariable String period) {
+    public ResponseEntity<List<List<String>>> getStockValue(@PathVariable String period) {
         Map<Date, Double> stockValueMap;
         switch (period) {
             case "week" -> stockValueMap = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, 7);
@@ -59,7 +59,8 @@ public class NetWorthController {
                 stockValueMap = netWorthService.getLastDaysStockValue(PORTFOLIO_ID, dayCount);
             }
         }
-        return ResponseEntity.ok().body(stockValueMap);
+
+        return ResponseEntity.ok().body(NetWorthService.buildResponseList(stockValueMap));
     }
 
 //    @GetMapping(value = "netWorth/days/{dayCount}", produces = {"application/json"})
