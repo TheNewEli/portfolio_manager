@@ -46,4 +46,9 @@ public class CashFlowController {
         }
         return ResponseEntity.ok().body(incomeMap);
     }
+
+    @GetMapping(value="/test", produces={"application/json"})
+    public ResponseEntity<String> getAllCashAccountForTest() {
+        return ResponseEntity.ok().body("[{\"bank\":\"Citi Bank\", \"type\":\"Checking\", \"value\":2552.77, \"timestamp\":1600114635587.0}, {\"bank\":\"Citi Bank\", \"type\":\"Savings\", \"value\":1206.00, \"timestamp\":1600114635587.0}]");
+    }
 }
