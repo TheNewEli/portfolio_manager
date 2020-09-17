@@ -4,7 +4,10 @@ import neueda.team1.portfolio_manager.service.CashFlowService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController
@@ -15,6 +18,22 @@ public class CashFlowController {
 
     public CashFlowController(CashFlowService cashFlowService) {
         this.cashFlowService = cashFlowService;
+    }
+
+    @GetMapping(value = "{period}", produces = {"application/json"})
+    public ResponseEntity<List<List<String>>> getCashFlow(@PathVariable String period) {
+        Map<String, Double> incomeMap = this.getIncomeMap(period).getBody();
+        Map<String, Double> spendingMap = this.getSpendingMap(period).getBody();
+
+        List<String> symbolList = new ArrayList<>(spendingMap.keySet());
+        List<String> incomeList = incomeMap.values().stream().map(num -> String.format("%.2f", num)).collect(Collectors.toList());
+        List<String> spendingList = spendingMap.values().stream().map(num -> String.format("%.2f", num)).collect(Collectors.toList());
+
+        List<List<String>> response = new ArrayList<>();
+        response.add(symbolList);
+        response.add(incomeList);
+        response.add(spendingList);
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping(value = "spend/{period}", produces = {"application/json"})
@@ -47,7 +66,7 @@ public class CashFlowController {
         return ResponseEntity.ok().body(incomeMap);
     }
 
-    @GetMapping(value="/test", produces={"application/json"})
+    @GetMapping(value = "/test", produces = {"application/json"})
     public ResponseEntity<String> getAllCashAccountForTest() {
         return ResponseEntity.ok().body("[{\"bank\":\"Citi Bank\", \"type\":\"Checking\", \"value\":2552.77, \"timestamp\":1600114635587.0}, {\"bank\":\"Citi Bank\", \"type\":\"Savings\", \"value\":1206.00, \"timestamp\":1600114635587.0}]");
     }
