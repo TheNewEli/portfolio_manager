@@ -3,7 +3,6 @@ package neueda.team1.portfolio_manager.service.service_ytx.httputils_ytx;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import neueda.team1.portfolio_manager.service.service_ytx.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;

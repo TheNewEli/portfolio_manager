@@ -3,7 +3,7 @@ package neueda.team1.portfolio_manager;
 import neueda.team1.portfolio_manager.entity.*;
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
 import neueda.team1.portfolio_manager.repository.*;
-import neueda.team1.portfolio_manager.repository.repository_ytx.PortfolioRepository;
+import neueda.team1.portfolio_manager.repository.PortfolioRepository;
 import neueda.team1.portfolio_manager.util.NumUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

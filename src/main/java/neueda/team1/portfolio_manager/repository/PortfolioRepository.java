@@ -1,4 +1,4 @@
-package neueda.team1.portfolio_manager.repository.repository_ytx;
+package neueda.team1.portfolio_manager.repository;
 
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
 import org.springframework.data.mongodb.repository.MongoRepository;

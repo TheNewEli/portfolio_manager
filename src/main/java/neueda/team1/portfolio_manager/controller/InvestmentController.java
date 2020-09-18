@@ -1,4 +1,4 @@
-package neueda.team1.portfolio_manager.controller.controller_ytx;
+package neueda.team1.portfolio_manager.controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -6,10 +6,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import neueda.team1.portfolio_manager.entity.DailyPosition;
 import neueda.team1.portfolio_manager.entity.SecurityHistory;
-import neueda.team1.portfolio_manager.entity.TeamPortfolio;
 import neueda.team1.portfolio_manager.repository.DailyPositionRepository;
 import neueda.team1.portfolio_manager.repository.TeamPortfolioRepository;
-import neueda.team1.portfolio_manager.service.service_ytx.PortfolioService;
+import neueda.team1.portfolio_manager.service.PortfolioService;
 import neueda.team1.portfolio_manager.service.service_ytx.httputils_ytx.TrochilHttpManage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * InvestmentController class

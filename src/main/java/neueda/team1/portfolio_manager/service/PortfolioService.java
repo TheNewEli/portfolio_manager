@@ -1,7 +1,7 @@
-package neueda.team1.portfolio_manager.service.service_ytx;
+package neueda.team1.portfolio_manager.service;
 
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
-import neueda.team1.portfolio_manager.repository.repository_ytx.PortfolioRepository;
+import neueda.team1.portfolio_manager.repository.PortfolioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

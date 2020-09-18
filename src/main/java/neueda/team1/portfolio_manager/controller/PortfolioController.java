@@ -1,7 +1,7 @@
-package neueda.team1.portfolio_manager.controller.controller_ytx;
+package neueda.team1.portfolio_manager.controller;
 
 import neueda.team1.portfolio_manager.entity.domain_ytx.Portfolio;
-import neueda.team1.portfolio_manager.service.service_ytx.PortfolioService;
+import neueda.team1.portfolio_manager.service.PortfolioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
